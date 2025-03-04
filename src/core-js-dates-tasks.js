@@ -234,8 +234,21 @@ function getWeekNumberByDate(date) {
  * Date(2024, 0, 13) => Date(2024, 8, 13)
  * Date(2023, 1, 1) => Date(2023, 9, 13)
  */
-function getNextFridayThe13th(/* date */) {
-  throw new Error('Not implemented');
+function getNextFridayThe13th(date) {
+  const weekDay = date.getDay();
+  const monthDay = date.getDate();
+  if (weekDay === 5 && monthDay === 13) {
+    return date;
+  }
+
+  const mondayStart = (date.getDay() + 6) % 7;
+  date.setDate(date.getDate() - mondayStart + 4);
+
+  while (date.getDate() !== 13) {
+    date.setDate(date.getDate() + 7);
+  }
+
+  return date;
 }
 
 /**
@@ -249,8 +262,18 @@ function getNextFridayThe13th(/* date */) {
  * Date(2024, 5, 1) => 2
  * Date(2024, 10, 10) => 4
  */
-function getQuarter(/* date */) {
-  throw new Error('Not implemented');
+function getQuarter(date) {
+  const quarter1Start = new Date(date.getFullYear(), 0, 1, 0, 0, 0, 1);
+  const quarter1End = new Date(date.getFullYear(), 3, 0, 0, 0, 0, 0);
+  const quarter2Start = new Date(date.getFullYear(), 3, 1, 0, 0, 0, 1);
+  const quarter2End = new Date(date.getFullYear(), 6, 0, 0, 0, 0, 0);
+  const quarter3Start = new Date(date.getFullYear(), 6, 1, 0, 0, 0, 1);
+  const quarter3End = new Date(date.getFullYear(), 9, 0, 0, 0, 0, 0);
+
+  if (+date >= +quarter1Start && +date <= +quarter1End) return 1;
+  if (+date >= +quarter2Start && +date <= +quarter2End) return 2;
+  if (+date >= +quarter3Start && +date <= +quarter3End) return 3;
+  return 4;
 }
 
 /**
@@ -271,8 +294,43 @@ function getQuarter(/* date */) {
  * { start: '01-01-2024', end: '15-01-2024' }, 1, 3 => ['01-01-2024', '05-01-2024', '09-01-2024', '13-01-2024']
  * { start: '01-01-2024', end: '10-01-2024' }, 1, 1 => ['01-01-2024', '03-01-2024', '05-01-2024', '07-01-2024', '09-01-2024']
  */
-function getWorkSchedule(/* period, countWorkDays, countOffDays */) {
-  throw new Error('Not implemented');
+function getWorkSchedule(period, countWorkDays, countOffDays) {
+  const formatStringForDate = (dateStr) => {
+    const [day, month, year] = dateStr.split('-');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getFormattedDate = (dateObj) => {
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const startPeriod = new Date(formatStringForDate(period.start));
+  const endPeriod = new Date(formatStringForDate(period.end));
+  const date = startPeriod;
+  const result = [];
+
+  let workDays = countWorkDays;
+  let offDays = countOffDays;
+  while (date <= +endPeriod) {
+    if (workDays > 0) {
+      result.push(getFormattedDate(date));
+      workDays -= 1;
+      if (offDays === 0) {
+        offDays = countOffDays;
+      }
+    } else {
+      offDays -= 1;
+      if (offDays === 0) {
+        workDays = countWorkDays;
+      }
+    }
+    date.setDate(date.getDate() + 1);
+  }
+
+  return result;
 }
 
 /**
